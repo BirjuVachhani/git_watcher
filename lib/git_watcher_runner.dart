@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 
 import 'commands/disable.dart';
@@ -7,6 +10,7 @@ import 'commands/ntfy.dart';
 import 'commands/remove.dart';
 import 'commands/run.dart';
 import 'commands/watch.dart';
+import 'src/version.dart';
 
 class GitWatcherRunner extends CommandRunner {
   GitWatcherRunner()
@@ -24,5 +28,32 @@ class GitWatcherRunner extends CommandRunner {
     addCommand(EnableCommand());
     addCommand(DisableCommand());
     addCommand(NTFYCommand());
+    addCommand(VersionCommand());
+
+    argParser.addFlag('version',
+        abbr: 'v', negatable: false, help: 'Print the version of the tool.');
+  }
+
+  @override
+  Future runCommand(ArgResults topLevelResults) async {
+    if (topLevelResults['version'] == true) {
+      stdout.writeln(packageVersion);
+      exit(0);
+    }
+    return super.runCommand(topLevelResults);
+  }
+}
+
+class VersionCommand extends Command {
+  @override
+  String get description => 'Print the version of the tool.';
+
+  @override
+  String get name => 'version';
+
+  @override
+  void run() {
+    stdout.writeln(packageVersion);
+    exit(0);
   }
 }
