@@ -1,0 +1,4 @@
+deps: dart pub get
+install: dart pub global activate --source path .
+uninstall: dart pub global deactivate spider
+build: dart compile exe bin/git_watcher.dart -o bin/gitwatcher
