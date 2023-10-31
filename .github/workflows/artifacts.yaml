@@ -1,0 +1,77 @@
+name: Artifacts
+
+on:
+  release:
+    types: [ published ]
+  workflow_dispatch:
+    branches: [ main ]
+
+jobs:
+  ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: dart-lang/setup-dart@v1
+      - name: Dart SDK
+        run: dart --version
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: dart pub get
+      - name: Build Artifact
+        run: dart compile exe bin/git_watcher.dart -o bin/gitwatcher
+      - name: Archive
+        run: tar -czf gitwatcher-linux-amd64.tar.gz bin/gitwatcher
+      - uses: actions/upload-artifact@v2
+        with:
+          path: gitwatcher-linux-amd64.tar.gz
+
+  mac:
+    runs-on: macos-latest
+    steps:
+      - uses: dart-lang/setup-dart@v1
+      - name: Dart SDK
+        run: dart --version
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: dart pub get
+      - name: Build Artifact
+        run: dart compile exe bin/git_watcher.dart -o bin/gitwatcher
+      - name: Archive
+        run: tar -czf gitwatcher-macos.tar.gz bin/gitwatcher
+      - uses: actions/upload-artifact@v2
+        with:
+          path: gitwatcher-macos.tar.gz
+
+  windows:
+    runs-on: windows-latest
+
+    steps:
+      - uses: dart-lang/setup-dart@v1
+      - name: Dart SDK
+        run: dart --version
+      - uses: actions/checkout@v1
+      - name: Install dependencies
+        run: dart pub get
+      - name: Build Artifact
+        run: dart compile exe bin/git_watcher.dart -o bin/gitwatcher
+      - name: Archive
+        run: tar.exe -a -c -f gitwatcher-windows.zip bin/gitwatcher.exe
+      - uses: actions/upload-artifact@v2
+        with:
+          path: gitwatcher-windows.zip
+
+  upload:
+    needs: [ ubuntu, mac, windows ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          path: dist
+      - name: Display structure of downloaded files
+        run: ls -R dist
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: dist/artifact/*
+          tag: ${{ github.ref }}
+          file_glob: true
