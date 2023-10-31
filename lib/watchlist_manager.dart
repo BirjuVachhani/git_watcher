@@ -45,6 +45,15 @@ class WatchlistManager {
     return (true, null);
   }
 
+  Future<(bool, String?)> setItem(WatchFile item) async {
+    final items = await get();
+    final index = items.indexWhere((element) => element.url == item.url);
+    if(index == -1) return (false, 'URL not found in watchlist.');
+    items[index] = item;
+    await file.writeAsString(jsonEncode(items));
+    return (true, null);
+  }
+
   Future<(bool, String?)> remove(String url) async {
     final items = await get();
     final length = items.length;

@@ -62,6 +62,11 @@ class RunCommand extends Command {
 
       logger.stdout(green('🔔 New commit found!'));
       await notify(item, data, logger);
+
+      // update item in storage
+      final updated = item.copyWith(lastModified: date);
+      await manager.setItem(updated);
+      logger.stdout(green('✅ Updated last modified date.'));
     }
 
     logger.stdout('-' * 80);
