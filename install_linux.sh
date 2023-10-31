@@ -72,7 +72,7 @@ version_compare () {
   fi
 }
 
-FORCE=false
+FORCE=true
 if [[ "$*" == *"--force"* ]]; then
   FORCE=true
 fi
