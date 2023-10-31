@@ -105,6 +105,9 @@ if [ -d "$(install_dir)/bin" ]; then
   fi
 fi
 
+echo "Creating $(install_dir)"
+mkdir -p "$(install_dir)/bin"
+
 # Clone the GitWatcher repository into the install_dir
 echo "Downloading GitWatcher into $(install_dir)"
 curl -o "$(install_dir)/gitwatcher-macos.tar.gz" https://github.com/BirjuVachhani/git_watcher/releases/download/0.1.0/gitwatcher-linux-amd64.tar.gz
