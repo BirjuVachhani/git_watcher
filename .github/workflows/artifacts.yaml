@@ -58,7 +58,7 @@ jobs:
       - name: Run build_runner
         run: dart run build_runner build --delete-conflicting-outputs
       - name: Build Artifact
-        run: dart compile exe bin/git_watcher.dart -o bin/gitwatcher
+        run: dart compile exe bin/git_watcher.dart -o bin/gitwatcher.exe
       - name: Archive
         run: tar.exe -a -c -f gitwatcher-windows.zip bin/gitwatcher.exe
       - uses: actions/upload-artifact@v2
