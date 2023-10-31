@@ -16,6 +16,8 @@ jobs:
       - uses: actions/checkout@v2
       - name: Install dependencies
         run: dart pub get
+      - name: Run build_runner
+        run: dart run build_runner build --delete-conflicting-outputs
       - name: Build Artifact
         run: dart compile exe bin/git_watcher.dart -o bin/gitwatcher
       - name: Archive
@@ -33,6 +35,8 @@ jobs:
       - uses: actions/checkout@v2
       - name: Install dependencies
         run: dart pub get
+      - name: Run build_runner
+        run: dart run build_runner build --delete-conflicting-outputs
       - name: Build Artifact
         run: dart compile exe bin/git_watcher.dart -o bin/gitwatcher
       - name: Archive
@@ -51,6 +55,8 @@ jobs:
       - uses: actions/checkout@v1
       - name: Install dependencies
         run: dart pub get
+      - name: Run build_runner
+        run: dart run build_runner build --delete-conflicting-outputs
       - name: Build Artifact
         run: dart compile exe bin/git_watcher.dart -o bin/gitwatcher
       - name: Archive
