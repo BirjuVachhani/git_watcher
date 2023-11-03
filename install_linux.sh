@@ -113,7 +113,7 @@ mkdir -p "$(install_dir)"
 
 # Clone the GitWatcher repository into the install_dir
 echo "Downloading GitWatcher into $(install_dir)"
-wget https://github.com/BirjuVachhani/git_watcher/releases/download/$(VERSION)/gitwatcher-linux-amd64.tar.gz -O "$(install_dir)/gitwatcher-linux-amd64.tar.gz"
+wget "https://github.com/BirjuVachhani/git_watcher/releases/download/$VERSION/gitwatcher-linux-amd64.tar.gz" -O "$(install_dir)/gitwatcher-linux-amd64.tar.gz"
 
 # Extract the GitWatcher binary
 echo "Extracting GitWatcher binary"
