@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:screwdriver/screwdriver.dart';
 
+import '../file_logger.dart';
 import '../helpers.dart';
 import '../ntfy_manager.dart';
 import '../watchlist_manager.dart';
@@ -22,19 +23,28 @@ class RunCommand extends Command {
   Future run() async {
     final Logger logger = Logger.standard();
     final WatchlistManager manager = WatchlistManager();
+    final FileLogger fileLogger = FileLogger();
+
+    await fileLogger.log('-' * 80);
+    await fileLogger.log('Running at ${DateTime.now()}');
+    await fileLogger.log('-' * 80);
 
     final items = await manager.get();
 
     if (items.isEmpty) {
       logger.stdout(grey('☑️ Watchlist is empty. Nothing to run.'));
+      await fileLogger.log('Watchlist is empty. Nothing to run.');
+      await fileLogger.log('-' * 80);
       return;
     }
 
     for (final item in items) {
       logger.stdout('-' * 80);
+      await fileLogger.log('Processing ${item.url}...');
 
       if (!item.enabled) {
         logger.stdout(grey('☑️ ${item.url} is disabled. Skipping...'));
+        await fileLogger.log('${item.url} is disabled. Skipping...');
         continue;
       }
 
@@ -44,6 +54,7 @@ class RunCommand extends Command {
 
       if (data == null) {
         logger.stderr(red('Unable to load URL.'));
+        await fileLogger.log('Unable to load URL.');
         continue;
       }
 
@@ -52,28 +63,41 @@ class RunCommand extends Command {
       final date = DateTime.tryParse(data['commit']['author']['date']);
       if (date == null) {
         logger.stderr(red('❌ Unable to process URL response.'));
+        await fileLogger.log('Unable to process URL response.');
         continue;
       }
 
       if (item.lastModified >= date) {
         logger.stdout(blue('✅ Up to date.'));
+        await fileLogger.log('Up to date.');
         continue;
       }
 
       logger.stdout(green('🔔 New commit found!'));
-      await notify(item, data, logger);
+      await fileLogger.log('New commit found! Notifying...');
+      final (success, reason) = await notify(item, data, logger);
+      await fileLogger.log(reason);
+
+      if (!success) {
+        logger.stderr(red('❌ Unable to notify: $reason'));
+        continue;
+      } else {
+        logger.stdout(green('✅ Successfully notified.'));
+      }
 
       // update item in storage
       final updated = item.copyWith(lastModified: date);
       await manager.setItem(updated);
       logger.stdout(green('✅ Updated last modified date.'));
+      await fileLogger.log('Updated last modified date.');
     }
 
     logger.stdout('-' * 80);
+    await fileLogger.log('-' * 80);
     exit(0);
   }
 
-  Future<void> notify(
+  Future<(bool, String)> notify(
     WatchFile item,
     Map<String, dynamic> data,
     Logger logger,
@@ -84,9 +108,10 @@ class RunCommand extends Command {
       final config = await manager.get();
 
       if (config == null) {
-        logger.stderr(red(
-            'Ntfy URL is not set. Unable to notify. Run `gitwatcher ntfy set <url>` to set the URL.'));
-        return;
+        return (
+          false,
+          'Ntfy URL is not set. Unable to notify. Run `gitwatcher ntfy set <url>` to set the URL.'
+        );
       }
 
       final url = config.topicUrl;
@@ -106,12 +131,17 @@ class RunCommand extends Command {
       );
 
       if (response.statusCode != 200) {
-        logger.stderr(red('❌ Unable to connect to $url.'));
-        exit(1);
+        return (
+          false,
+          'Unable to notify to $url: ${response.statusCode}: ${response.reasonPhrase}'
+        );
       }
+
+      return (true, 'Successfully notified to $url.');
     } catch (error, stacktrace) {
       logger.stderr(red('Error: $error'));
       logger.stderr(red('Stacktrace: $stacktrace'));
+      return (false, 'Exception while notifying: $error');
     }
   }
 }
