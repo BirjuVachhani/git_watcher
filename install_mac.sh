@@ -3,7 +3,7 @@
 set -e
 
 # Latest release version of the CLI. Update this whenever a new release is made.
-VERSION="0.1.1"
+VERSION="0.1.2"
 
 install_dir() {
   [ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.git_watcher" || printf %s "${XDG_CONFIG_HOME}/.git_watcher"
