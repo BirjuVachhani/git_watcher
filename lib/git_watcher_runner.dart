@@ -6,6 +6,7 @@ import 'package:args/command_runner.dart';
 import 'commands/disable.dart';
 import 'commands/enable.dart';
 import 'commands/list.dart';
+import 'commands/logs.dart';
 import 'commands/ntfy.dart';
 import 'commands/remove.dart';
 import 'commands/run.dart';
@@ -28,6 +29,7 @@ class GitWatcherRunner extends CommandRunner {
     addCommand(EnableCommand());
     addCommand(DisableCommand());
     addCommand(NTFYCommand());
+    addCommand(LogsCommand());
     addCommand(VersionCommand());
 
     argParser.addFlag('version',
