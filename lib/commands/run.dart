@@ -13,6 +13,22 @@ import '../ntfy_manager.dart';
 import '../watchlist_manager.dart';
 
 class RunCommand extends Command {
+  RunCommand() {
+    argParser
+      ..addFlag(
+        'dry',
+        abbr: 'd',
+        negatable: false,
+        help: 'Dry run. Does not notify or update the last modified date.',
+      )
+      ..addFlag(
+        'verbose',
+        abbr: 'v',
+        negatable: false,
+        help: 'Increase logging.',
+      );
+  }
+
   @override
   String get description => 'Run all the watchers and notify with NTFY.';
 
@@ -21,7 +37,16 @@ class RunCommand extends Command {
 
   @override
   Future run() async {
-    final Logger logger = Logger.standard();
+    final bool isVerbose = argResults!['verbose'] == true;
+    final bool isDryRun = argResults!['dry'] == true;
+
+    final Logger logger;
+    if (argResults!['verbose'] == true) {
+      logger = Logger.verbose();
+    } else {
+      logger = Logger.standard();
+    }
+
     final WatchlistManager manager = WatchlistManager();
     final FileLogger fileLogger = FileLogger();
 
@@ -58,13 +83,19 @@ class RunCommand extends Command {
         continue;
       }
 
-      // printLatestCommit(data, logger);
+      if (isVerbose) printLatestCommit(data, logger);
 
-      final date = DateTime.tryParse(data['commit']['author']['date']);
+      final date =
+          DateTime.tryParse(data['commit']['author']['date'])?.toLocal();
       if (date == null) {
         logger.stderr(red('❌ Unable to process URL response.'));
         await fileLogger.log('Unable to process URL response.');
         continue;
+      }
+
+      if (isVerbose) {
+        logger.stdout('Last modified:   ${item.lastModified}');
+        logger.stdout('Latest commit:   $date');
       }
 
       if (item.lastModified >= date) {
@@ -74,22 +105,27 @@ class RunCommand extends Command {
       }
 
       logger.stdout(green('🔔 New commit found!'));
-      await fileLogger.log('New commit found! Notifying...');
-      final (success, reason) = await notify(item, data, logger);
-      await fileLogger.log(reason);
+      if (!isDryRun) {
+        await fileLogger.log('New commit found! Notifying...');
+        final (success, reason) = await notify(item, data, logger);
+        await fileLogger.log(reason);
 
-      if (!success) {
-        logger.stderr(red('❌ Unable to notify: $reason'));
-        continue;
+        if (!success) {
+          logger.stderr(red('❌ Unable to notify: $reason'));
+          continue;
+        } else {
+          logger.stdout(green('✅ Successfully notified.'));
+        }
+
+        // update item in storage
+        final updated = item.copyWith(lastModified: date);
+        await manager.setItem(updated);
+        logger.stdout(green('✅ Updated last modified date.'));
+        await fileLogger.log('Updated last modified date.');
       } else {
-        logger.stdout(green('✅ Successfully notified.'));
+        logger.stdout(grey('☑️ Dry run. Skipping notification.'));
+        await fileLogger.log('Dry run. Skipping notification.');
       }
-
-      // update item in storage
-      final updated = item.copyWith(lastModified: date);
-      await manager.setItem(updated);
-      logger.stdout(green('✅ Updated last modified date.'));
-      await fileLogger.log('Updated last modified date.');
     }
 
     logger.stdout('-' * 80);
