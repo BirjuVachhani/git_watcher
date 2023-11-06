@@ -134,6 +134,10 @@ esac
 echo ""
 echo "🐦 GitWatcher has been installed!"
 
+echo "Cleaning up..."
+rm "$(install_dir)/gitwatcher-linux-amd64.tar.gz"
+echo "Done!"
+
 if [ "$RELOAD_REQUIRED" = true ]; then
   echo "
 Close and reopen your terminal to start using GitWatcher or run the following command to start using it now:
