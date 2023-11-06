@@ -159,7 +159,7 @@ void printGithubURLInfo(GithubFileURL info) {
 
 void printLatestCommit(Map<String, dynamic> data, Logger logger) {
   logger.stdout(blue('Latest Commit'));
-  final date = DateTime.tryParse(data['commit']['author']['date']);
+  final date = DateTime.tryParse(data['commit']['author']['date'])?.toLocal();
   final duration = date != null ? DateTime.now().difference(date) : null;
   final String timeAgo = duration != null ? '${duration.prettify()} ago' : '';
   final table = Table(

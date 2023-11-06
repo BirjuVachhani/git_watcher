@@ -77,7 +77,7 @@ class WatchCommand extends Command {
 
     printLatestCommit(data, logger);
 
-    final date = DateTime.tryParse(data['commit']['author']['date']);
+    final date = DateTime.tryParse(data['commit']['author']['date'])?.toLocal();
 
     if (date == null) {
       logger.stderr(red('Could not parse date.'));
